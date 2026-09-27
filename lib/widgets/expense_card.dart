@@ -17,17 +17,23 @@ class ExpenseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final categoryColor = AppConstants.getCategoryColor(expense.category);
     final categoryIcon = AppConstants.getCategoryIcon(expense.category);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? Colors.grey.shade800 : Colors.transparent,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.25)
+                : Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -68,10 +74,10 @@ class ExpenseCard extends StatelessWidget {
                         expense.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -86,19 +92,19 @@ class ExpenseCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Text(
+                          Text(
                             '•',
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textMuted,
+                              color: isDark ? Colors.grey.shade600 : AppColors.textMuted,
                             ),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             expense.formattedDate,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textSecondary,
+                              color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
                             ),
                           ),
                         ],
@@ -109,10 +115,10 @@ class ExpenseCard extends StatelessWidget {
                           expense.note!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontStyle: FontStyle.italic,
-                            color: AppColors.textMuted,
+                            color: isDark ? Colors.grey.shade500 : AppColors.textMuted,
                           ),
                         ),
                       ],

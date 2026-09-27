@@ -17,8 +17,8 @@ class ExpenseProvider with ChangeNotifier {
   String _searchQuery = '';
   DateTimeRange? _customDateRange;
 
-  ExpenseProvider({FirestoreService? firestoreService})
-      : _firestoreService = firestoreService ?? FirestoreService() {
+  ExpenseProvider({FirestoreService? firestoreService, String? userId})
+      : _firestoreService = firestoreService ?? FirestoreService(userId: userId) {
     _subscribeToExpenses();
   }
 
@@ -30,6 +30,12 @@ class ExpenseProvider with ChangeNotifier {
   String? get selectedCategory => _selectedCategory;
   String get searchQuery => _searchQuery;
   DateTimeRange? get customDateRange => _customDateRange;
+
+  /// Update the active user ID for user-scoped expenses data.
+  void updateUser(String? userId) {
+    _firestoreService.setUserId(userId);
+    _subscribeToExpenses();
+  }
 
   void _subscribeToExpenses() {
     _isLoading = true;
@@ -168,7 +174,7 @@ class ExpenseProvider with ChangeNotifier {
   }
 
   void nextMonth() {
-    _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+    _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
     _customDateRange = null;
     notifyListeners();
   }

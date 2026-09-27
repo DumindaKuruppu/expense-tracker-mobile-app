@@ -20,6 +20,7 @@ class CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final chipColor = color ?? AppConstants.getCategoryColor(label);
     final chipIcon = icon ?? AppConstants.getCategoryIcon(label);
 
@@ -34,10 +35,12 @@ class CategoryChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: isSelected
                 ? chipColor.withValues(alpha: 0.2)
-                : AppColors.surface,
+                : Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: isSelected ? chipColor : Colors.grey.shade300,
+              color: isSelected
+                  ? chipColor
+                  : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
               width: isSelected ? 2.0 : 1.0,
             ),
             boxShadow: isSelected
@@ -56,7 +59,7 @@ class CategoryChip extends StatelessWidget {
               Icon(
                 chipIcon,
                 size: 18,
-                color: isSelected ? chipColor : AppColors.textSecondary,
+                color: isSelected ? chipColor : (isDark ? Colors.grey.shade400 : AppColors.textSecondary),
               ),
               const SizedBox(width: 6),
               Text(
@@ -64,7 +67,7 @@ class CategoryChip extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? chipColor : AppColors.textPrimary,
+                  color: isSelected ? chipColor : Theme.of(context).textTheme.bodyMedium?.color,
                 ),
               ),
             ],

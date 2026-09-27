@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
 import '../models/expense_model.dart';
+import '../providers/auth_provider.dart';
 import '../providers/expense_provider.dart';
+import '../widgets/app_drawer.dart';
 import '../widgets/category_chip.dart';
 import '../widgets/confirm_delete_dialog.dart';
 import '../widgets/empty_state.dart';
@@ -45,16 +47,76 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _confirmSignOut(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout, color: AppColors.expense),
+            SizedBox(width: 8),
+            Text('Sign Out'),
+          ],
+        ),
+        content: const Text('Are you sure you want to sign out of your account?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.expense,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.signOut();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<ExpenseProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      drawer: const AppDrawer(),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
         elevation: 0,
         centerTitle: false,
+        leading: _isSearching
+            ? null
+            : Builder(
+                builder: (context) => IconButton(
+                  tooltip: 'Open Menu Drawer',
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance_wallet_rounded,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                  ),
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                ),
+              ),
         title: _isSearching
             ? TextField(
                 controller: _searchController,
@@ -69,36 +131,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   provider.setSearchQuery(value);
                 },
               )
-            : Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.account_balance_wallet,
-                      color: AppColors.primary,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    AppConstants.appName,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
+            : const Text(
+                AppConstants.appName,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
               ),
         actions: [
           IconButton(
             icon: Icon(
               _isSearching ? Icons.close : Icons.search,
-              color: AppColors.textPrimary,
             ),
             onPressed: () {
               setState(() {
@@ -121,6 +164,71 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
             tooltip: 'Spending Analytics',
+          ),
+          PopupMenuButton<String>(
+            icon: CircleAvatar(
+              radius: 16,
+              backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+              child: Text(
+                authProvider.userDisplayName.isNotEmpty
+                    ? authProvider.userDisplayName[0].toUpperCase()
+                    : 'U',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+            onSelected: (value) {
+              if (value == 'logout') {
+                _confirmSignOut(context);
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem<String>(
+                enabled: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      authProvider.userDisplayName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (authProvider.userEmail != null)
+                      Text(
+                        authProvider.userEmail!,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                        ),
+                      )
+                    else if (authProvider.isGuest)
+                      const Text(
+                        'Guest Mode',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    const Divider(),
+                  ],
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, size: 20, color: AppColors.expense),
+                    SizedBox(width: 8),
+                    Text('Sign Out', style: TextStyle(color: AppColors.expense)),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(width: 8),
         ],
@@ -159,7 +267,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
                         ),
                       ),
                       if (provider.selectedCategory != null ||
@@ -229,12 +336,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Recent Transactions',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                     ),
                   ),
                   Text(

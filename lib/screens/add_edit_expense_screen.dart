@@ -144,23 +144,27 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = Theme.of(context).cardColor;
+    final textPrimaryColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.white;
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(), // Dismiss keyboard on background tap
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            icon: Icon(Icons.arrow_back, color: textPrimaryColor),
             onPressed: () => Navigator.of(context).pop(),
           ),
           title: Text(
             widget.isEditMode ? 'Edit Expense' : 'Add New Expense',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18,
-              color: AppColors.textPrimary,
+              color: textPrimaryColor,
             ),
           ),
           actions: [
@@ -183,10 +187,12 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                 // Amount Input Field (Highlighted)
                 Card(
                   elevation: 0,
-                  color: AppColors.surface,
+                  color: cardColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
-                    side: BorderSide(color: Colors.grey.shade200),
+                    side: BorderSide(
+                      color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                    ),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -196,12 +202,12 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'AMOUNT',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textMuted,
+                            color: isDark ? Colors.grey.shade400 : AppColors.textMuted,
                             letterSpacing: 1.0,
                           ),
                         ),
@@ -227,7 +233,7 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                             hintStyle: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade300,
+                              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
                             ),
                             border: InputBorder.none,
                           ),
@@ -252,30 +258,41 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                 const SizedBox(height: 20),
 
                 // Title Input Field
-                const Text(
+                Text(
                   'Title / Description *',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: textPrimaryColor,
                   ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _titleController,
                   textCapitalization: TextCapitalization.sentences,
+                  style: TextStyle(color: textPrimaryColor),
                   decoration: InputDecoration(
                     hintText: 'e.g. Grocery Shopping, Gas Refill',
+                    hintStyle: TextStyle(
+                      color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+                    ),
                     filled: true,
-                    fillColor: AppColors.surface,
-                    prefixIcon: const Icon(Icons.title, color: AppColors.textMuted),
+                    fillColor: cardColor,
+                    prefixIcon: Icon(
+                      Icons.title,
+                      color: isDark ? Colors.grey.shade500 : AppColors.textMuted,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: Colors.grey.shade200),
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                      ),
                     ),
                   ),
                   validator: (value) {
@@ -291,12 +308,12 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                 const SizedBox(height: 20),
 
                 // Category Selector
-                const Text(
+                Text(
                   'Category *',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: textPrimaryColor,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -321,9 +338,9 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                       ),
                       selected: isSelected,
                       selectedColor: cat.color,
-                      backgroundColor: AppColors.surface,
+                      backgroundColor: cardColor,
                       labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                        color: isSelected ? Colors.white : textPrimaryColor,
                         fontWeight:
                             isSelected ? FontWeight.bold : FontWeight.w500,
                         fontSize: 13,
@@ -331,7 +348,9 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                         side: BorderSide(
-                          color: isSelected ? cat.color : Colors.grey.shade300,
+                          color: isSelected
+                              ? cat.color
+                              : (isDark ? Colors.grey.shade700 : Colors.grey.shade300),
                         ),
                       ),
                       onSelected: (selected) {
@@ -347,12 +366,12 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                 const SizedBox(height: 20),
 
                 // Date Picker Tile
-                const Text(
+                Text(
                   'Date *',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: textPrimaryColor,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -365,9 +384,11 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                       vertical: 14,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: cardColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(
+                        color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                      ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -382,17 +403,17 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                             const SizedBox(width: 12),
                             Text(
                               DateFormat.yMMMMd().format(_selectedDate),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
+                                color: textPrimaryColor,
                               ),
                             ),
                           ],
                         ),
-                        const Icon(
+                        Icon(
                           Icons.edit_calendar,
-                          color: AppColors.textMuted,
+                          color: isDark ? Colors.grey.shade500 : AppColors.textMuted,
                           size: 20,
                         ),
                       ],
@@ -402,12 +423,12 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                 const SizedBox(height: 20),
 
                 // Optional Note Field
-                const Text(
+                Text(
                   'Note (Optional)',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: textPrimaryColor,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -415,17 +436,25 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                   controller: _noteController,
                   maxLines: 3,
                   textCapitalization: TextCapitalization.sentences,
+                  style: TextStyle(color: textPrimaryColor),
                   decoration: InputDecoration(
                     hintText: 'Add additional details or remarks...',
+                    hintStyle: TextStyle(
+                      color: isDark ? Colors.grey.shade500 : Colors.grey.shade400,
+                    ),
                     filled: true,
-                    fillColor: AppColors.surface,
+                    fillColor: cardColor,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: Colors.grey.shade200),
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                      ),
                     ),
                   ),
                 ),

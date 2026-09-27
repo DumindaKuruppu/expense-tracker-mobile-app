@@ -7,35 +7,47 @@ import '../models/expense_model.dart';
 /// Dedicated service class isolating Cloud Firestore operations.
 class FirestoreService {
   final FirebaseFirestore? _firestore;
+  String? _userId;
 
-  // In-memory fallback list to ensure app usability even if Firebase is uninitialized or offline
-  final List<ExpenseModel> _mockExpenses = [];
+  // In-memory fallback list per user for unit testing environments without Firebase
+  final Map<String, List<ExpenseModel>> _userMockExpenses = {};
   final StreamController<List<ExpenseModel>> _mockStreamController =
       StreamController<List<ExpenseModel>>.broadcast();
-  bool _useFallback = false;
 
-  FirestoreService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? _getFirestoreInstance() {
-    if (_firestore == null) {
-      _useFallback = true;
-    }
-    _initMockDataIfNeeded();
+  FirestoreService({FirebaseFirestore? firestore, String? userId})
+      : _firestore = firestore,
+        _userId = userId {
+    _initMockDataIfNeeded(_activeUserId);
   }
 
-  static FirebaseFirestore? _getFirestoreInstance() {
+  bool get _isRealFirestoreAvailable {
+    if (_firestore != null) return true;
     try {
-      return FirebaseFirestore.instance;
-    } catch (e) {
-      debugPrint('Firestore instance notice: $e (Running in fallback mode)');
-      return null;
+      return FirebaseFirestore.instance.app != null;
+    } catch (_) {
+      return false;
     }
   }
 
-  void _initMockDataIfNeeded() {
+  FirebaseFirestore get _firestoreInstance => _firestore ?? FirebaseFirestore.instance;
+
+  String get _activeUserId => _userId ?? 'guest-default';
+
+  void setUserId(String? userId) {
+    if (_userId != userId) {
+      _userId = userId;
+      _initMockDataIfNeeded(_activeUserId);
+      _emitMockList();
+    }
+  }
+
+  void _initMockDataIfNeeded(String uid) {
+    if (_userMockExpenses.containsKey(uid)) return;
+
     final now = DateTime.now();
-    _mockExpenses.addAll([
+    _userMockExpenses[uid] = [
       ExpenseModel(
-        id: 'sample-1',
+        id: 'sample-1-$uid',
         title: 'Weekly Grocery Shopping',
         amount: 85.50,
         category: 'Food & Dining',
@@ -43,7 +55,7 @@ class FirestoreService {
         note: 'Supermarket supplies & vegetables',
       ),
       ExpenseModel(
-        id: 'sample-2',
+        id: 'sample-2-$uid',
         title: 'Gas / Fuel Refill',
         amount: 45.00,
         category: 'Transport',
@@ -51,7 +63,7 @@ class FirestoreService {
         note: 'Full tank at Shell',
       ),
       ExpenseModel(
-        id: 'sample-3',
+        id: 'sample-3-$uid',
         title: 'Electric & Power Bill',
         amount: 120.30,
         category: 'Bills & Utilities',
@@ -59,118 +71,114 @@ class FirestoreService {
         note: 'Monthly power consumption',
       ),
       ExpenseModel(
-        id: 'sample-4',
+        id: 'sample-4-$uid',
         title: 'Cinema Movie Tickets',
         amount: 32.00,
         category: 'Entertainment',
         date: now.subtract(const Duration(days: 5)),
         note: 'IMAX weekend show',
       ),
-      ExpenseModel(
-        id: 'sample-5',
-        title: 'Online Course Subscription',
-        amount: 49.99,
-        category: 'Education',
-        date: now.subtract(const Duration(days: 8)),
-        note: 'Flutter Advanced Masterclass',
-      ),
-    ]);
+    ];
   }
 
-  CollectionReference<Map<String, dynamic>>? get _expensesCollection =>
-      _firestore?.collection(AppConstants.expensesCollection);
+  List<ExpenseModel> get _currentMockExpenses {
+    return _userMockExpenses[_activeUserId] ?? [];
+  }
 
-  /// Get real-time stream of expenses ordered by date descending.
-  Stream<List<ExpenseModel>> getExpensesStream() {
-    if (_useFallback || _expensesCollection == null) {
-      Timer.run(() => _emitMockList());
-      return _mockStreamController.stream;
+  CollectionReference<Map<String, dynamic>>? get _expensesCollection {
+    if (!_isRealFirestoreAvailable) return null;
+    if (_userId != null && _userId!.isNotEmpty) {
+      return _firestoreInstance
+          .collection('users')
+          .doc(_userId)
+          .collection(AppConstants.expensesCollection);
     }
+    return _firestoreInstance.collection(AppConstants.expensesCollection);
+  }
 
+  /// Get real-time stream of expenses for the active user ordered by date descending.
+  Stream<List<ExpenseModel>> getExpensesStream() {
     try {
-      return _expensesCollection!
-          .orderBy('date', descending: true)
-          .snapshots()
-          .map((snapshot) {
-        return snapshot.docs.map((doc) {
-          return ExpenseModel.fromFirestore(doc);
-        }).toList();
-      }).handleError((error) {
-        debugPrint('Firestore Stream Error (switching to fallback): $error');
-        _useFallback = true;
-        _emitMockList();
-        return _mockStreamController.stream;
-      });
+      if (_isRealFirestoreAvailable && _expensesCollection != null) {
+        return _expensesCollection!
+            .orderBy('date', descending: true)
+            .snapshots()
+            .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return ExpenseModel.fromFirestore(doc);
+          }).toList();
+        }).handleError((error) {
+          debugPrint('Firestore Stream Error: $error');
+          _emitMockList();
+          return _mockStreamController.stream;
+        });
+      }
     } catch (e) {
       debugPrint('Firestore Stream Exception: $e');
-      _useFallback = true;
-      Timer.run(() => _emitMockList());
-      return _mockStreamController.stream;
     }
+
+    Timer.run(() => _emitMockList());
+    return _mockStreamController.stream;
   }
 
   void _emitMockList() {
-    _mockExpenses.sort((a, b) => b.date.compareTo(a.date));
+    final list = _currentMockExpenses;
+    list.sort((a, b) => b.date.compareTo(a.date));
     if (!_mockStreamController.isClosed) {
-      _mockStreamController.add(List.from(_mockExpenses));
+      _mockStreamController.add(List.from(list));
     }
   }
 
   /// Add a new expense record to Cloud Firestore.
   Future<String> addExpense(ExpenseModel expense) async {
-    if (_useFallback || _expensesCollection == null) {
-      final newId = 'mock-${DateTime.now().millisecondsSinceEpoch}';
-      final newExpense = expense.copyWith(id: newId);
-      _mockExpenses.add(newExpense);
-      _emitMockList();
-      return newId;
+    try {
+      if (_isRealFirestoreAvailable && _expensesCollection != null) {
+        final docRef = await _expensesCollection!.add(expense.toMap());
+        return docRef.id;
+      }
+    } catch (e) {
+      debugPrint('Firestore Add Expense Exception: $e');
     }
 
-    try {
-      final docRef = await _expensesCollection!.add(expense.toMap());
-      return docRef.id;
-    } catch (e) {
-      debugPrint('Firestore Add Error (using fallback): $e');
-      _useFallback = true;
-      return addExpense(expense);
-    }
+    final newId = 'mock-${DateTime.now().millisecondsSinceEpoch}';
+    final newExpense = expense.copyWith(id: newId);
+    _currentMockExpenses.add(newExpense);
+    _emitMockList();
+    return newId;
   }
 
   /// Update an existing expense record in Cloud Firestore.
   Future<void> updateExpense(ExpenseModel expense) async {
-    if (_useFallback || _expensesCollection == null) {
-      final index = _mockExpenses.indexWhere((e) => e.id == expense.id);
-      if (index != -1) {
-        _mockExpenses[index] = expense;
-        _emitMockList();
+    try {
+      if (_isRealFirestoreAvailable && _expensesCollection != null) {
+        await _expensesCollection!.doc(expense.id).update(expense.toMap());
+        return;
       }
-      return;
+    } catch (e) {
+      debugPrint('Firestore Update Expense Exception: $e');
     }
 
-    try {
-      await _expensesCollection!.doc(expense.id).update(expense.toMap());
-    } catch (e) {
-      debugPrint('Firestore Update Error (using fallback): $e');
-      _useFallback = true;
-      await updateExpense(expense);
+    final list = _currentMockExpenses;
+    final index = list.indexWhere((e) => e.id == expense.id);
+    if (index != -1) {
+      list[index] = expense;
+      _emitMockList();
     }
   }
 
   /// Delete an expense record from Cloud Firestore.
   Future<void> deleteExpense(String id) async {
-    if (_useFallback || _expensesCollection == null) {
-      _mockExpenses.removeWhere((e) => e.id == id);
-      _emitMockList();
-      return;
+    try {
+      if (_isRealFirestoreAvailable && _expensesCollection != null) {
+        await _expensesCollection!.doc(id).delete();
+        return;
+      }
+    } catch (e) {
+      debugPrint('Firestore Delete Expense Exception: $e');
     }
 
-    try {
-      await _expensesCollection!.doc(id).delete();
-    } catch (e) {
-      debugPrint('Firestore Delete Error (using fallback): $e');
-      _useFallback = true;
-      await deleteExpense(id);
-    }
+    _currentMockExpenses.removeWhere((e) => e.id == id);
+    _emitMockList();
   }
 
   void dispose() {

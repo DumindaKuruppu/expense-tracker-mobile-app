@@ -34,6 +34,10 @@ class _StatsScreenState extends State<StatsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = Theme.of(context).cardColor;
+    final textPrimaryColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.white;
+
     final provider = Provider.of<ExpenseProvider>(context);
     final categoryMap = provider.categoryTotalsForSelectedMonth;
     final totalSpending = provider.monthlyTotal;
@@ -44,20 +48,20 @@ class _StatsScreenState extends State<StatsScreen> {
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back, color: textPrimaryColor),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text(
+        title: Text(
           'Spending Analytics',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 18,
-            color: AppColors.textPrimary,
+            color: textPrimaryColor,
           ),
         ),
         actions: [
@@ -78,9 +82,11 @@ class _StatsScreenState extends State<StatsScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: cardColor,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(
+                  color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -92,10 +98,10 @@ class _StatsScreenState extends State<StatsScreen> {
                       const SizedBox(width: 10),
                       Text(
                         monthName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: textPrimaryColor,
                         ),
                       ),
                     ],
@@ -130,21 +136,23 @@ class _StatsScreenState extends State<StatsScreen> {
               // Pie Chart Visualization Card
               Card(
                 elevation: 0,
-                color: AppColors.surface,
+                color: cardColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
-                  side: BorderSide(color: Colors.grey.shade200),
+                  side: BorderSide(
+                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                  ),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
                     children: [
-                      const Text(
+                      Text(
                         'Category Distribution',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: textPrimaryColor,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -200,7 +208,7 @@ class _StatsScreenState extends State<StatsScreen> {
                         decoration: BoxDecoration(
                           color: AppConstants.getCategoryColor(
                                   sortedEntries.first.key)
-                              .withValues(alpha: 0.1),
+                              .withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -234,12 +242,12 @@ class _StatsScreenState extends State<StatsScreen> {
               const SizedBox(height: 20),
 
               // Category Breakdown List
-              const Text(
+              Text(
                 'Category Breakdown',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: textPrimaryColor,
                 ),
               ),
               const SizedBox(height: 12),
@@ -258,9 +266,11 @@ class _StatsScreenState extends State<StatsScreen> {
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: cardColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(
+                        color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -281,17 +291,17 @@ class _StatsScreenState extends State<StatsScreen> {
                                 children: [
                                   Text(
                                     entry.key,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
-                                      color: AppColors.textPrimary,
+                                      color: textPrimaryColor,
                                     ),
                                   ),
                                   Text(
                                     '${percentage.toStringAsFixed(1)}% of total',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
-                                      color: AppColors.textSecondary,
+                                      color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -302,10 +312,10 @@ class _StatsScreenState extends State<StatsScreen> {
                                 symbol: AppConstants.currencySymbol,
                                 decimalDigits: 2,
                               ).format(entry.value),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
-                                color: AppColors.textPrimary,
+                                color: textPrimaryColor,
                               ),
                             ),
                           ],
