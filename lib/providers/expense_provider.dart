@@ -40,6 +40,20 @@ class ExpenseProvider with ChangeNotifier {
   String get currencySymbol => _currencySymbol;
   String get currencyCode => _currencyCode;
 
+  /// Check if the currently selected month is the actual current month.
+  bool get isCurrentMonth {
+    final now = DateTime.now();
+    return _selectedMonth.year == now.year && _selectedMonth.month == now.month;
+  }
+
+  /// Reset selected month back to the current month & year.
+  void resetToCurrentMonth() {
+    final now = DateTime.now();
+    _selectedMonth = DateTime(now.year, now.month);
+    _customDateRange = null;
+    notifyListeners();
+  }
+
   /// Update active currency symbol and currency code.
   void setCurrency(String symbol, String code) {
     _currencySymbol = symbol;

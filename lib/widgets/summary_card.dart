@@ -12,6 +12,7 @@ class SummaryCard extends StatelessWidget {
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
   final VoidCallback onSelectMonth;
+  final VoidCallback? onResetToCurrentMonth;
 
   const SummaryCard({
     super.key,
@@ -22,6 +23,7 @@ class SummaryCard extends StatelessWidget {
     required this.onPreviousMonth,
     required this.onNextMonth,
     required this.onSelectMonth,
+    this.onResetToCurrentMonth,
   });
 
   @override
@@ -29,6 +31,7 @@ class SummaryCard extends StatelessWidget {
     final expenseProvider = Provider.of<ExpenseProvider>(context);
     final formattedTotal = expenseProvider.formatAmount(totalAmount);
     final monthName = DateFormat.yMMMM().format(selectedMonth);
+    final isCurrent = expenseProvider.isCurrentMonth;
 
     return Container(
       width: double.infinity,
@@ -93,6 +96,49 @@ class SummaryCard extends StatelessWidget {
                 ),
                 Row(
                   children: [
+                    // "Today" Jump Button (Visible when viewing a past/future month)
+                    if (!isCurrent) ...[
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: onResetToCurrentMonth ?? () => expenseProvider.resetToCurrentMonth(),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.4),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.today_rounded,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Today',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     IconButton(
                       icon: const Icon(Icons.chevron_left, color: Colors.white),
                       onPressed: onPreviousMonth,

@@ -689,23 +689,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 12),
 
                 // Guest Mode Action
-                TextButton.icon(
-                  onPressed: authProvider.isLoading
-                      ? null
-                      : () => authProvider.signInAnonymously(),
-                  icon: Icon(
-                    Icons.person_outline,
-                    size: 18,
-                    color: textSecondaryColor,
-                  ),
-                  label: Text(
-                    'Continue as Guest',
-                    style: TextStyle(color: textSecondaryColor),
-                  ),
-                  style: TextButton.styleFrom(
-                    foregroundColor: textSecondaryColor,
-                  ),
-                ),
+                // TextButton.icon(
+                //   onPressed: authProvider.isLoading
+                //       ? null
+                //       : () => authProvider.signInAnonymously(),
+                //   icon: Icon(
+                //     Icons.person_outline,
+                //     size: 18,
+                //     color: textSecondaryColor,
+                //   ),
+                //   label: Text(
+                //     'Continue as Guest',
+                //     style: TextStyle(color: textSecondaryColor),
+                //   ),
+                //   style: TextButton.styleFrom(
+                //     foregroundColor: textSecondaryColor,
+                //   ),
+                // ),
               ],
             ),
           ),

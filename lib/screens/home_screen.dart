@@ -247,6 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onPreviousMonth: () => provider.previousMonth(),
                 onNextMonth: () => provider.nextMonth(),
                 onSelectMonth: () => _showMonthPicker(context, provider),
+                onResetToCurrentMonth: () => provider.resetToCurrentMonth(),
               ),
             ),
           ),
@@ -270,7 +271,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       if (provider.selectedCategory != null ||
-                          provider.searchQuery.isNotEmpty)
+                          provider.searchQuery.isNotEmpty ||
+                          !provider.isCurrentMonth)
                         TextButton.icon(
                           onPressed: () {
                             _searchController.clear();
@@ -374,17 +376,17 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverFillRemaining(
               hasScrollBody: false,
               child: EmptyStateWidget(
-                title: provider.searchQuery.isNotEmpty || provider.selectedCategory != null
+                title: provider.searchQuery.isNotEmpty || provider.selectedCategory != null || !provider.isCurrentMonth
                     ? 'No Matching Expenses'
                     : 'No Expenses Recorded',
-                message: provider.searchQuery.isNotEmpty || provider.selectedCategory != null
-                    ? 'Try adjusting your search query or category filter.'
+                message: provider.searchQuery.isNotEmpty || provider.selectedCategory != null || !provider.isCurrentMonth
+                    ? 'Try adjusting your search query, category filter, or month selection.'
                     : 'No expense records found for this month.',
-                buttonText: provider.searchQuery.isNotEmpty || provider.selectedCategory != null
-                    ? 'Clear Filters'
+                buttonText: provider.searchQuery.isNotEmpty || provider.selectedCategory != null || !provider.isCurrentMonth
+                    ? 'Reset to Current Month'
                     : 'Add First Expense',
                 onButtonPressed: () {
-                  if (provider.searchQuery.isNotEmpty || provider.selectedCategory != null) {
+                  if (provider.searchQuery.isNotEmpty || provider.selectedCategory != null || !provider.isCurrentMonth) {
                     _searchController.clear();
                     provider.resetFilters();
                     setState(() {
