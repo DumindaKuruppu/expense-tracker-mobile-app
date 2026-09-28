@@ -13,13 +13,36 @@ class CategoryItem {
   });
 }
 
+class CurrencyItem {
+  final String code;
+  final String symbol;
+  final String name;
+
+  const CurrencyItem({
+    required this.code,
+    required this.symbol,
+    required this.name,
+  });
+}
+
 class AppConstants {
   static const String appName = 'Expense Tracker';
-  static const String currencySymbol = '\$';
-  static const String defaultCurrencyCode = 'USD';
+  static const String defaultCurrencySymbol = 'Rs.';
+  static const String defaultCurrencyCode = 'PKR';
 
   // Firestore Collection Name
   static const String expensesCollection = 'expenses';
+
+  // Supported Currency List
+  static const List<CurrencyItem> supportedCurrencies = [
+    CurrencyItem(code: 'PKR', symbol: 'Rs.', name: 'Rupee (Rs.)'),
+    CurrencyItem(code: 'INR', symbol: '₹', name: 'Indian Rupee (₹)'),
+    CurrencyItem(code: 'USD', symbol: '\$', name: 'US Dollar (\$)'),
+    CurrencyItem(code: 'EUR', symbol: '€', name: 'Euro (€)'),
+    CurrencyItem(code: 'GBP', symbol: '£', name: 'British Pound (£)'),
+    CurrencyItem(code: 'AED', symbol: 'AED', name: 'UAE Dirham (AED)'),
+    CurrencyItem(code: 'SAR', symbol: 'SAR', name: 'Saudi Riyal (SAR)'),
+  ];
 
   // Category Definitions
   static const List<CategoryItem> categories = [

@@ -87,14 +87,19 @@ class ExpenseModel {
     );
   }
 
-  /// Formatted currency string, e.g., "$45.50"
-  String get formattedAmount {
+  /// Formatted currency string with customizable currency symbol.
+  String getFormattedAmount([String? customSymbol]) {
+    final sym = customSymbol ?? AppConstants.defaultCurrencySymbol;
+    final symbolWithSpace = (sym.endsWith('.') || sym.length >= 3) ? '$sym ' : sym;
     final formatter = NumberFormat.currency(
-      symbol: AppConstants.currencySymbol,
+      symbol: symbolWithSpace,
       decimalDigits: 2,
     );
     return formatter.format(amount);
   }
+
+  /// Default formatted currency string using default currency symbol (Rs.).
+  String get formattedAmount => getFormattedAmount();
 
   /// Formatted date string, e.g., "Oct 24, 2025"
   String get formattedDate {

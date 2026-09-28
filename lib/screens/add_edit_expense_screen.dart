@@ -144,9 +144,13 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final expenseProvider = Provider.of<ExpenseProvider>(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = Theme.of(context).cardColor;
     final textPrimaryColor = Theme.of(context).textTheme.bodyLarge?.color ?? Colors.white;
+
+    final sym = expenseProvider.currencySymbol;
+    final symbolPrefix = (sym.endsWith('.') || sym.length >= 3) ? '$sym ' : sym;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(), // Dismiss keyboard on background tap
@@ -223,7 +227,7 @@ class _AddEditExpenseScreenState extends State<AddEditExpenseScreen> {
                             color: AppColors.expense,
                           ),
                           decoration: InputDecoration(
-                            prefixText: '${AppConstants.currencySymbol} ',
+                            prefixText: '$symbolPrefix ',
                             prefixStyle: const TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,

@@ -25,7 +25,7 @@ void main() {
       expect(fromMapExpense.note, equals('Steak and drinks'));
     });
 
-    test('should format currency correctly', () {
+    test('should format currency correctly with default and custom symbol', () {
       final expense = ExpenseModel(
         id: '1',
         title: 'Coffee',
@@ -34,7 +34,8 @@ void main() {
         date: now,
       );
 
-      expect(expense.formattedAmount, equals('\$4.99'));
+      expect(expense.formattedAmount, equals('Rs. 4.99'));
+      expect(expense.getFormattedAmount('\$'), equals('\$4.99'));
     });
 
     test('should format dates correctly', () {

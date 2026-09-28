@@ -99,48 +99,79 @@ class AppDrawer extends StatelessWidget {
   void _showSettingsDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.settings_outlined, color: AppColors.primary),
-            SizedBox(width: 8),
-            Text('Settings'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: Icon(Icons.attach_money, color: AppColors.secondary),
-              title: Text('Default Currency'),
-              subtitle: Text('${AppConstants.currencySymbol} USD'),
-            ),
-            const Divider(),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.cleaning_services_outlined, color: AppColors.warning),
-              title: const Text('Reset Category Filters'),
-              onTap: () {
-                Provider.of<ExpenseProvider>(context, listen: false).resetFilters();
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Filters reset to default')),
-                );
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+      builder: (context) {
+        final expenseProvider = Provider.of<ExpenseProvider>(context);
+        return AlertDialog(
+          backgroundColor: Theme.of(context).cardColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.settings_outlined, color: AppColors.primary),
+              SizedBox(width: 8),
+              Text('Settings'),
+            ],
           ),
-        ],
-      ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Preferred Currency Symbol',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<CurrencyItem>(
+                value: AppConstants.supportedCurrencies.firstWhere(
+                  (c) => c.symbol == expenseProvider.currencySymbol,
+                  orElse: () => AppConstants.supportedCurrencies.first,
+                ),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Theme.of(context).cardColor,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                items: AppConstants.supportedCurrencies.map((c) {
+                  return DropdownMenuItem<CurrencyItem>(
+                    value: c,
+                    child: Text('${c.name} (${c.symbol})'),
+                  );
+                }).toList(),
+                onChanged: (CurrencyItem? newCurrency) {
+                  if (newCurrency != null) {
+                    expenseProvider.setCurrency(newCurrency.symbol, newCurrency.code);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Currency updated to ${newCurrency.symbol}'),
+                        backgroundColor: AppColors.secondary,
+                      ),
+                    );
+                  }
+                },
+              ),
+              const Divider(height: 24),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.cleaning_services_outlined, color: AppColors.warning),
+                title: const Text('Reset Category Filters'),
+                onTap: () {
+                  expenseProvider.resetFilters();
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Filters reset to default')),
+                  );
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -185,6 +216,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final expenseProvider = Provider.of<ExpenseProvider>(context);
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode(context);
 
@@ -269,6 +301,10 @@ class AppDrawer extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.settings_outlined, color: AppColors.primary),
                     title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.w600)),
+                    subtitle: Text(
+                      'Currency: ${expenseProvider.currencySymbol}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
                     onTap: () {
                       Navigator.of(context).pop();
                       _showSettingsDialog(context);

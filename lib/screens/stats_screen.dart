@@ -107,10 +107,7 @@ class _StatsScreenState extends State<StatsScreen> {
                     ],
                   ),
                   Text(
-                    NumberFormat.currency(
-                      symbol: AppConstants.currencySymbol,
-                      decimalDigits: 2,
-                    ).format(totalSpending),
+                    provider.formatAmount(totalSpending),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
@@ -308,10 +305,7 @@ class _StatsScreenState extends State<StatsScreen> {
                               ),
                             ),
                             Text(
-                              NumberFormat.currency(
-                                symbol: AppConstants.currencySymbol,
-                                decimalDigits: 2,
-                              ).format(entry.value),
+                              provider.formatAmount(entry.value),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,

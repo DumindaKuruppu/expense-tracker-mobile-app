@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_constants.dart';
 import '../models/expense_model.dart';
+import '../providers/expense_provider.dart';
 
 class ExpenseCard extends StatelessWidget {
   final ExpenseModel expense;
@@ -18,6 +20,7 @@ class ExpenseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final expenseProvider = Provider.of<ExpenseProvider>(context);
     final categoryColor = AppConstants.getCategoryColor(expense.category);
     final categoryIcon = AppConstants.getCategoryIcon(expense.category);
 
@@ -132,7 +135,7 @@ class ExpenseCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '-${expense.formattedAmount}',
+                      '-${expenseProvider.formatAmount(expense.amount)}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,

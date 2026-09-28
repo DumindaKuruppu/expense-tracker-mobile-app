@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../constants/app_constants.dart';
 import '../models/expense_model.dart';
 import '../services/firestore_service.dart';
 
@@ -10,6 +12,10 @@ class ExpenseProvider with ChangeNotifier {
   List<ExpenseModel> _allExpenses = [];
   bool _isLoading = true;
   String? _errorMessage;
+
+  // Currency Settings (Default: Rs. PKR)
+  String _currencySymbol = AppConstants.defaultCurrencySymbol;
+  String _currencyCode = AppConstants.defaultCurrencyCode;
 
   // Filter States
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
@@ -30,6 +36,27 @@ class ExpenseProvider with ChangeNotifier {
   String? get selectedCategory => _selectedCategory;
   String get searchQuery => _searchQuery;
   DateTimeRange? get customDateRange => _customDateRange;
+
+  String get currencySymbol => _currencySymbol;
+  String get currencyCode => _currencyCode;
+
+  /// Update active currency symbol and currency code.
+  void setCurrency(String symbol, String code) {
+    _currencySymbol = symbol;
+    _currencyCode = code;
+    notifyListeners();
+  }
+
+  /// Helper to format currency amount with active symbol.
+  String formatAmount(double amount) {
+    final sym = _currencySymbol;
+    final symbolWithSpace = (sym.endsWith('.') || sym.length >= 3) ? '$sym ' : sym;
+    final formatter = NumberFormat.currency(
+      symbol: symbolWithSpace,
+      decimalDigits: 2,
+    );
+    return formatter.format(amount);
+  }
 
   /// Update the active user ID for user-scoped expenses data.
   void updateUser(String? userId) {
@@ -174,7 +201,7 @@ class ExpenseProvider with ChangeNotifier {
   }
 
   void nextMonth() {
-    _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+    _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
     _customDateRange = null;
     notifyListeners();
   }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
-import '../constants/app_constants.dart';
+import '../providers/expense_provider.dart';
 
 class SummaryCard extends StatelessWidget {
   final double totalAmount;
@@ -25,11 +26,8 @@ class SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formattedTotal = NumberFormat.currency(
-      symbol: AppConstants.currencySymbol,
-      decimalDigits: 2,
-    ).format(totalAmount);
-
+    final expenseProvider = Provider.of<ExpenseProvider>(context);
+    final formattedTotal = expenseProvider.formatAmount(totalAmount);
     final monthName = DateFormat.yMMMM().format(selectedMonth);
 
     return Container(

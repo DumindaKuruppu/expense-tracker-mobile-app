@@ -148,6 +148,10 @@ class AuthService {
     } catch (e) {
       if (_isRealAuthAvailable) {
         debugPrint('Google Sign-In Exception: $e');
+        final errorStr = e.toString();
+        if (errorStr.contains('ApiException: 10') || errorStr.contains('10:')) {
+          throw 'Google Sign-In setup required: Please add your Android SHA-1 fingerprint in Firebase Console and download the updated google-services.json.';
+        }
         throw 'Failed to sign in with Google: $e';
       }
     }
